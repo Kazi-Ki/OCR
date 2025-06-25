@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ブラウザOCRツール</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 600px;
+    margin: 30px auto;
+    padding: 0 15px;
+    background: #f0f0f0;
+    color: #333;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  #upload {
+    display: block;
+    margin: 0 auto 1rem;
+  }
+  #preview {
+    text-align: center;
+    margin-bottom: 1rem;
+  }
+  #preview img {
+    max-width: 100%;
+    max-height: 300px;
+    border-radius: 6px;
+    box-shadow: 0 0 10px #ccc;
+  }
+  #startBtn, #copyBtn {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 6px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  #startBtn:hover, #copyBtn:hover {
+    background-color: #45a049;
+  }
+  #progress {
+    text-align: center;
+    margin: 10px 0;
+    font-weight: bold;
+  }
+  #result {
+    white-space: pre-wrap;
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    min-height: 150px;
+    box-shadow: inset 0 0 5px #aaa;
+    overflow-y: auto;
+  }
+</style>
+</head>
+<body>
+  <h1>ブラウザOCRツール</h1>
+  <input type="file" id="upload" accept="image/*" />
+  <div id="preview"></div>
+  <button id="startBtn" disabled>OCR開始</button>
+  <div id="progress"></div>
+  <pre id="result"></pre>
+  <button id="copyBtn" disabled>結果コピー</button>
+
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+<script>
+  const upload = document.getElementById('upload');
+  const preview = document.getElementById('preview');
+  const startBtn = document.getElementById('startBtn');
+  const progress = document.getElementById('progress');
+  const result = document.getElementById('result');
+  const copyBtn = document.getElementById('copyBtn');
+
+  let imgDataURL = null;
+
+  upload.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(ev) {
+      imgDataURL = ev.target.result;
+      preview.innerHTML = `<img src="${imgDataURL}" alt="アップロード画像">`;
+      startBtn.disabled = false;
+      result.textContent = '';
+      copyBtn.disabled = true;
+      progress.textContent = '';
+    };
+    reader.readAsDataURL(file);
+  });
+
+  startBtn.addEventListener('click', () => {
+    if (!imgDataURL) return;
+
+    startBtn.disabled = true;
+    progress.textContent = '認識中... 0%';
+    result.textContent = '';
+    copyBtn.disabled = true;
+
+    Tesseract.recognize(
+      imgDataURL,
+      'jpn', // 日本語対応（英語なら'en'）
+      {
+        logger: m => {
+          if (m.status === 'recognizing text') {
+            progress.textContent = `認識中... ${Math.round(m.progress * 100)}%`;
+          }
+        }
+      }
+    ).then(({ data: { text } }) => {
+      result.textContent = text.trim() || '文字が認識されませんでした。';
+      progress.textContent = '認識完了！';
+      startBtn.disabled = false;
+      copyBtn.disabled = false;
+    }).catch(err => {
+      progress.textContent = 'エラーが発生しました。';
+      startBtn.disabled = false;
+      console.error(err);
+    });
+  });
+
+  copyBtn.addEventListener('click', () => {
+    if (!result.textContent) return;
+    navigator.clipboard.writeText(result.textContent)
+      .then(() => {
+        alert('認識結果をコピーしました！');
+      })
+      .catch(() => {
+        alert('コピーに失敗しました。');
+      });
+  });
+</script>
+</body>
+</html>
