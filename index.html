@@ -60,27 +60,12 @@
     box-shadow: inset 0 0 5px #aaa;
     overflow-y: auto;
   }
-  .btn-flat-dashed-filled {
-  display: inline-block;
-  padding: 0.5em 1em;
-  text-decoration: none;
-  color: #67c5ff;
-  border: dashed 1px #67c5ff;
-  background: #f2fcff;
-  border-radius: 3px;
-  transition: .4s;
-}
-
-.btn-flat-dashed-filled:hover {
-  background: #cbedff;
-  color: #FFF;
-}
 
 </style>
 </head>
 <body>
   <h1>ブラウザOCRツール</h1>
-  <a href="#" class="btn-flat-dashed-filled"><input type="file" id="upload" accept="image/*" /></a>
+  <input type="file" id="upload" accept="image/*" />
   <div id="preview"></div>
   <button id="startBtn" disabled>OCR開始</button>
   <div id="progress"></div>
